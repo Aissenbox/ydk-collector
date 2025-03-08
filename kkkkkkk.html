@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>收集工具</title>
+    <style>
+        body {
+            background-color: lightblue; /* 设置背景颜色 */
+            color: darkblue; /* 设置文本颜色 */
+            font-family: Arial, sans-serif; /* 设置字体 */
+            display: flex; /* 使用Flexbox布局 */
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+            flex-direction: column; /* 子元素垂直排列 */
+            min-height: 100vh; /* 最小高度为视口高度 */
+            margin: 0; /* 移除默认的外边距 */
+        }
+        a {
+            color: blue; /* 设置未访问链接颜色 */
+        }
+        a:visited {
+            color: purple; /* 设置已访问链接颜色 */
+        }
+        a:active {
+            color: green; /* 设置激活链接颜色 */
+        }
+        .container {
+            text-align: center; /* 文本居中 */
+            width: 100%; /* 容器宽度 */
+        }
+        textarea, input {
+            display: block; /* 块级元素，独占一行 */
+            margin: 10px auto; /* 上下外边距10px，左右外边距自动居中 */
+            width: 90%; /* 宽度为父容器的90% */
+        }
+        button {
+            display: block; /* 块级元素，独占一行 */
+            margin: 10px auto; /* 上下外边距10px，左右外边距自动居中 */
+        }
+        p {
+            display: block; /* 块级元素，独占一行 */
+            margin: 10px auto; /* 上下外边距10px，左右外边距自动居中 */
+            width: 90%; /* 宽度为父容器的90% */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>栗子球的YDK收集网站</h1>
+        <p>请将你的YDK代码放入到这里：</p>
+        <textarea id="ydkCode" placeholder="输入你的YDK代码" rows="10" cols="50"></textarea>
+        <button onclick="submitYDK()">提交</button>
+        <p id="output"></p>
+
+        <p>请将卡组链接放入到这里：</p>
+        <textarea id="webLink" placeholder="输入卡组链接" rows="5" cols="50"></textarea>
+        <button onclick="fetchWebPage()">提交</button>
+        <p id="webOutput"></p>
+
+        <button onclick="copyResults()">复制结果</button>
+    </div>
+
+    <script>
+        function submitYDK() {
+            var ydkCode = document.getElementById('ydkCode').value.trim(); // 获取文本域的内容并去除空格
+            if (ydkCode) {
+                // 去除英文字符、# 和 !
+                ydkCode = ydkCode.replace(/[a-zA-Z#!]/g, '');
+
+                // 去除文本开头和末尾的多余换行符
+                ydkCode = ydkCode.trim();
+
+                // 去除中间多余的连续换行符
+                ydkCode = ydkCode.replace(/\n+/g, '\n');
+
+                // 计算行数
+                var lines = ydkCode.split('\n').filter(Boolean).length; // 过滤掉空行
+
+                // 显示行数
+                document.getElementById('output').innerText = "卡组数量：" + lines;
+            } else {
+                document.getElementById('output').innerText = ""; // 如果输入为空，则不显示结果
+            }
+        }
+
+        async function fetchWebPage() {
+            var webLink = document.getElementById('webLink').value.trim(); // 获取输入的网页链接并去除空格
+            if (webLink) {
+                try {
+                    const response = await fetch(webLink);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const text = await response.text();
+
+                    // 提取所有包含 class="cardItem" 的 <a> 标签
+                    const cardItems = text.match(/<a[^>]+class="cardItem"[^>]*>/g); // 匹配所有的 class="cardItem" 的 a 标签
+                    const cardCount = cardItems ? cardItems.length : 0;
+
+                    // 显示结果
+                    document.getElementById('webOutput').innerText = "网页中含有的卡图数量：" + cardCount;
+                } catch (error) {
+                    document.getElementById('webOutput').innerText = "无法获取网页内容。请检查链接是否正确，确保网页可访问，或稍后重试。";
+                }
+            } else {
+                document.getElementById('webOutput').innerText = ""; // 如果输入为空，则不显示结果
+            }
+        }
+
+        function copyResults() {
+            var ydkCode = document.getElementById('ydkCode').value.trim(); // 获取YDK代码并去除空格
+            var webLink = document.getElementById('webLink').value.trim(); // 获取网页链接并去除空格
+            var output = document.getElementById('output').innerText.trim(); // 获取YDK代码处理结果并去除空格
+            var webOutput = document.getElementById('webOutput').innerText.trim(); // 获取网页内容解析结果并去除空格
+
+            // 创建一个文本区域用于复制内容
+            var textArea = document.createElement('textarea');
+            var results = [];
+
+            if (ydkCode) {
+                results.push("YDK代码：\n" + ydkCode);
+            }
+            if (webLink) {
+                results.push("网页链接：\n" + webLink);
+            }
+            if (output) {
+                results.push("卡密数量：\n" + output);
+            }
+            if (webOutput) {
+                results.push("网页内容解析结果：\n" + webOutput);
+            }
+
+            textArea.value = results.join("\n\n");
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            alert('结果已复制到剪贴板！');
+        }
+    </script>
+</body>
+</html>
